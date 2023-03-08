@@ -1,3 +1,5 @@
+// shoping list app
+
 // ui items
 const itemFormUI = document.getElementById('item-form');
 const itemInputUI = document.getElementById('item-input');
