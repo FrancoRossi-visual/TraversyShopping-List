@@ -5,6 +5,7 @@ const itemFormUI = document.getElementById('item-form'),
   itemListUI = document.getElementById('item-list'),
   clearAllUI = document.getElementById('clear'),
   itemFilterUI = document.getElementById('filter');
+let isEditMode = false;
 
 // ui state:
 function uiState() {
@@ -13,6 +14,16 @@ function uiState() {
       (itemFilterUI.style.display = 'inline-block'))
     : ((clearAllUI.style.display = 'none'),
       (itemFilterUI.style.display = 'none'));
+
+  isEditMode = false;
+
+  itemListUI
+    .querySelectorAll('li')
+    .forEach((i) => i.classList.remove('edit-mode'));
+
+  submitUI.innerHTML = '<i class="fa-solid fa-plus"></i> Add item';
+  submitUI.style.backgroundColor = '#333333';
+  itemInputUI.value = '';
 }
 
 // create li w/ button n' icon ; add item:
@@ -24,17 +35,34 @@ function OnAddItemSubmit(e) {
     alert('Please enter an item');
     return;
   }
-  // create item dom element
-  addItemToDOM(newItem);
 
-  // add item to local storage
-  addItemToStorage(newItem);
+  // check for edit mode
+  if (isEditMode) {
+    const oldItem = document.querySelector('.edit-mode').firstChild.textContent;
+    editItem(newItem);
+    removeItemFromStorage(oldItem);
+  } else {
+    // create item dom element
+    addItemToDOM(newItem);
+
+    // add item to local storage
+    addItemToStorage(newItem);
+  }
 
   // update ui
   uiState();
 
   itemInputUI.value = '';
 }
+// edit item and change storage
+function editItem(item) {
+  document.querySelector('.edit-mode').firstChild.textContent = item;
+  editItemFromStorage(item);
+}
+function editItemFromStorage(item) {
+  addItemToStorage(item);
+}
+
 // Add to DOM
 function addItemToDOM(item) {
   // create li and append text
@@ -98,6 +126,22 @@ function onClickItem(e) {
   if (e.target.tagName === 'I') {
     removeItem(e.target.parentElement.parentElement);
   }
+  if (e.target.tagName === 'LI') {
+    setItemToEdit(e.target);
+  }
+}
+function setItemToEdit(item) {
+  isEditMode = true;
+  itemInputUI.focus();
+
+  itemListUI
+    .querySelectorAll('li')
+    .forEach((i) => i.classList.remove('edit-mode'));
+
+  item.classList.add('edit-mode');
+  submitUI.innerHTML = '<i class="fa-solid fa-pen"></i> Update item';
+  submitUI.style.backgroundColor = '#228B22';
+  itemInputUI.value = item.textContent;
 }
 
 // remove item
@@ -106,18 +150,17 @@ function removeItem(item) {
     // remove from dom
     item.remove();
     // remove from storage
-    removeItemFromStorate(item.textContent);
+    removeItemFromStorage(item.textContent);
 
     uiState();
   }
 }
 
-function removeItemFromStorate(item) {
+function removeItemFromStorage(item) {
   let itemsFromStorage = getItemsFromStorage();
-  console.log(itemsFromStorage);
+
   // filter out
   itemsFromStorage = itemsFromStorage.filter((i) => i !== item);
-  console.log(itemsFromStorage);
 
   // reset to local storage
   localStorage.setItem('items', JSON.stringify(itemsFromStorage));
