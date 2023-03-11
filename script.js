@@ -8,7 +8,7 @@ const itemFormUI = document.getElementById('item-form'),
 let isEditMode = false;
 
 // ui state:
-function uiState() {
+function resetUI() {
   itemListUI.firstElementChild
     ? ((clearAllUI.style.display = 'inline-block'),
       (itemFilterUI.style.display = 'inline-block'))
@@ -30,6 +30,7 @@ function uiState() {
 function OnAddItemSubmit(e) {
   e.preventDefault();
   const newItem = itemInputUI.value;
+
   // Validate Input:
   if (newItem === '') {
     alert('Please enter an item');
@@ -39,9 +40,20 @@ function OnAddItemSubmit(e) {
   // check for edit mode
   if (isEditMode) {
     const oldItem = document.querySelector('.edit-mode').firstChild.textContent;
+
+    if (newItem !== oldItem && checkIfItemExist(newItem)) {
+      alert('This item already in the list');
+      return;
+    }
+
     editItem(newItem);
     removeItemFromStorage(oldItem);
   } else {
+    if (checkIfItemExist(newItem)) {
+      alert('This item already in the list');
+      return;
+    }
+
     // create item dom element
     addItemToDOM(newItem);
 
@@ -50,9 +62,7 @@ function OnAddItemSubmit(e) {
   }
 
   // update ui
-  uiState();
-
-  itemInputUI.value = '';
+  resetUI();
 }
 // edit item and change storage
 function editItem(item) {
@@ -92,7 +102,7 @@ function renderItemsFromStorage() {
   itemsFromStorage.forEach((item) => {
     addItemToDOM(item);
   });
-  uiState();
+  resetUI();
 }
 
 // create button w/ icon:
@@ -130,6 +140,11 @@ function onClickItem(e) {
     setItemToEdit(e.target);
   }
 }
+function checkIfItemExist(item) {
+  let itemsFromStorage = getItemsFromStorage();
+  itemsFromStorage = itemsFromStorage.map((i) => i.toLowerCase());
+  return itemsFromStorage.includes(item.toLowerCase());
+}
 function setItemToEdit(item) {
   isEditMode = true;
   itemInputUI.focus();
@@ -152,7 +167,7 @@ function removeItem(item) {
     // remove from storage
     removeItemFromStorage(item.textContent);
 
-    uiState();
+    resetUI();
   }
 }
 
@@ -173,7 +188,7 @@ function clearAll() {
       itemListUI.removeChild(itemListUI.firstChild);
       // clear from localStorage
       localStorage.removeItem('items');
-      uiState();
+      resetUI();
     }
 }
 
@@ -201,7 +216,7 @@ function init() {
   itemFilterUI.addEventListener('input', filter);
   document.addEventListener('DOMContentLoaded', renderItemsFromStorage);
 
-  uiState();
+  resetUI();
 }
 
 init();
